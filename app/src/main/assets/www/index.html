@@ -497,6 +497,50 @@
                 <feGaussianBlur in="pillRefracted" stdDeviation=".4" result="pillBlurred"/>
                 <feBlend in="pillRefracted" in2="pillBlurred" mode="normal" result="pillSoft"/>
             </filter>
+
+            <!-- 아래는 기존 4종(검색/내비/바/필)과 완전히 동일한 굴절 원리를
+                 다이얼로그 / 컨텍스트 메뉴 / 토스트 / 검색 추천 드롭다운에도 그대로 적용하기 위한
+                 추가 필터. liquid-glass.js 의 applyGlassTo() 가 요소 크기에 맞춰
+                 각 feImage 맵을 실시간으로 채워 넣는다. -->
+            <filter id="liquidGlassDialogFilter" x="-15%" y="-20%" width="130%" height="140%" color-interpolation-filters="sRGB" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                <feImage id="dialogDisplacementMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="dialogMap"/>
+                <feDisplacementMap id="dialogGlassRefraction" in="SourceGraphic" in2="dialogMap"
+                    scale="1" xChannelSelector="R" yChannelSelector="G" result="dialogRefracted"/>
+                <feGaussianBlur in="dialogRefracted" stdDeviation="1" result="dialogBlurred"/>
+                <feBlend in="dialogRefracted" in2="dialogBlurred" mode="normal" result="dialogSoft"/>
+            </filter>
+
+            <filter id="liquidGlassAddModalFilter" x="-15%" y="-20%" width="130%" height="140%" color-interpolation-filters="sRGB" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                <feImage id="addModalDisplacementMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="addModalMap"/>
+                <feDisplacementMap id="addModalGlassRefraction" in="SourceGraphic" in2="addModalMap"
+                    scale="1" xChannelSelector="R" yChannelSelector="G" result="addModalRefracted"/>
+                <feGaussianBlur in="addModalRefracted" stdDeviation="1" result="addModalBlurred"/>
+                <feBlend in="addModalRefracted" in2="addModalBlurred" mode="normal" result="addModalSoft"/>
+            </filter>
+
+            <filter id="liquidGlassCtxFilter" x="-20%" y="-25%" width="140%" height="150%" color-interpolation-filters="sRGB" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                <feImage id="ctxDisplacementMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="ctxMap"/>
+                <feDisplacementMap id="ctxGlassRefraction" in="SourceGraphic" in2="ctxMap"
+                    scale="1" xChannelSelector="R" yChannelSelector="G" result="ctxRefracted"/>
+                <feGaussianBlur in="ctxRefracted" stdDeviation=".8" result="ctxBlurred"/>
+                <feBlend in="ctxRefracted" in2="ctxBlurred" mode="normal" result="ctxSoft"/>
+            </filter>
+
+            <filter id="liquidGlassToastFilter" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                <feImage id="toastDisplacementMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="toastMap"/>
+                <feDisplacementMap id="toastGlassRefraction" in="SourceGraphic" in2="toastMap"
+                    scale="1" xChannelSelector="R" yChannelSelector="G" result="toastRefracted"/>
+                <feGaussianBlur in="toastRefracted" stdDeviation=".6" result="toastBlurred"/>
+                <feBlend in="toastRefracted" in2="toastBlurred" mode="normal" result="toastSoft"/>
+            </filter>
+
+            <filter id="liquidGlassSugFilter" x="-15%" y="-25%" width="130%" height="150%" color-interpolation-filters="sRGB" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                <feImage id="sugDisplacementMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="sugMap"/>
+                <feDisplacementMap id="sugGlassRefraction" in="SourceGraphic" in2="sugMap"
+                    scale="1" xChannelSelector="R" yChannelSelector="G" result="sugRefracted"/>
+                <feGaussianBlur in="sugRefracted" stdDeviation="1" result="sugBlurred"/>
+                <feBlend in="sugRefracted" in2="sugBlurred" mode="normal" result="sugSoft"/>
+            </filter>
         </defs>
     </svg>
 
