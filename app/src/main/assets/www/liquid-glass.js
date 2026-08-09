@@ -1,8 +1,11 @@
 /* ════════════════════════════════════════════════════════
    LIQUID GLASS LAYER (SYNC 리디자인 — 순수 추가 스크립트)
    - app.js 의 재생/검색/AndroidBridge 로직은 전혀 건드리지 않음.
-   - 1) 검색 캡슐 / 하단 내비 캡슐의 SVG 굴절(displacement) 맵 생성
+   - 1) 검색 캡슐 / 하단 내비 캡슐 / 미니 플레이어 바 / 필 인디케이터의
+        SVG 굴절(displacement) 맵 생성
    - 2) 하단 내비 "Morphing Sliding Pill" 인디케이터 애니메이션
+   - 3) 나머지 시스템 UI(다이얼로그, 컨텍스트 메뉴, 토스트, 검색 추천
+        드롭다운)에도 동일한 굴절 원리를 그대로 확장 적용 (applyExtraGlass)
    참고 원리: convex squircle 표면 → 법선 → Snell 굴절 →
    R/G 채널에 정규화된 변위 벡터를 기록한 feImage → feDisplacementMap
    (Liquid_glass_kit.js 의 refractionProfile/makeMap 로직을 그대로 재사용)
@@ -125,6 +128,74 @@
         }
         // 작은 캡슐(필)은 가장자리 굴절을 훨씬 강하고 넓게 (bezel↑, boost 3.2배)
         applyGlassTo(document.getElementById("mnPill"), "#pillDisplacementMap", "#pillGlassRefraction", 40, 2.4);
+        applyExtraGlass();
+    }
+
+    /* ---------- 1-b. 나머지 시스템 UI(다이얼로그/컨텍스트 메뉴/토스트/검색
+       추천 드롭다운)도 검색 캡슐·하단 내비와 동일한 굴절 원리를 그대로 적용.
+       이 요소들은 평소 display:none 이다가 .on 클래스가 붙을 때만 나타나므로,
+       "현재 화면에 보이는 것만" 굴절 맵을 다시 계산한다. ---------- */
+    function isShown(el) {
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && getComputedStyle(el).display !== "none";
+    }
+
+    function applyExtraGlass() {
+        const dialogOverlay = document.getElementById("pl-dialog-overlay");
+        if (dialogOverlay && dialogOverlay.classList.contains("on")) {
+            applyGlassTo($("#pl-dialog"), "#dialogDisplacementMap", "#dialogGlassRefraction", 30);
+        }
+        const confirmOverlay = document.getElementById("pl-confirm-overlay");
+        if (confirmOverlay && confirmOverlay.classList.contains("on")) {
+            applyGlassTo($("#pl-confirm"), "#dialogDisplacementMap", "#dialogGlassRefraction", 30);
+        }
+        const addModalOverlay = document.getElementById("pl-add-modal-overlay");
+        if (addModalOverlay && addModalOverlay.classList.contains("on")) {
+            applyGlassTo($("#pl-add-modal"), "#addModalDisplacementMap", "#addModalGlassRefraction", 30);
+        }
+        const ctx = document.getElementById("pl-ctx-menu");
+        if (ctx && ctx.classList.contains("on")) {
+            applyGlassTo(ctx, "#ctxDisplacementMap", "#ctxGlassRefraction", 26);
+        }
+        const toast = document.getElementById("toast");
+        if (toast && toast.classList.contains("on")) {
+            applyGlassTo(toast, "#toastDisplacementMap", "#toastGlassRefraction", 34, 1.6);
+        }
+        // 검색 추천 드롭다운은 화면에 여러 개(sug-home/sug-s) 존재할 수 있으나
+        // 실제로 보이는(펼쳐진) 것만 계산한다.
+        document.querySelectorAll(".mob-srch-wrap .sug-drop").forEach(function (el) {
+            if (isShown(el)) applyGlassTo(el, "#sugDisplacementMap", "#sugGlassRefraction", 26);
+        });
+    }
+
+    /* .on 클래스 토글로 나타나는 요소들은 표시되는 "순간"의 rect를 기준으로
+       굴절 맵을 새로 그려야 하므로, 각 트리거 요소의 class 변화를 관찰한다. */
+    function watchExtraGlassVisibility() {
+        const targets = [
+            "pl-dialog-overlay", "pl-confirm-overlay", "pl-add-modal-overlay",
+            "pl-ctx-menu", "toast"
+        ];
+        targets.forEach(function (id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const mo = new MutationObserver(function () {
+                if (el.classList.contains("on")) {
+                    // 열림 트랜지션(슬라이드업/페이드) 시작 직후 최종 레이아웃 기준으로 재계산
+                    setTimeout(applyExtraGlass, 30);
+                }
+            });
+            mo.observe(el, { attributes: true, attributeFilter: ["class"] });
+        });
+
+        // 검색 추천 드롭다운은 별도 .on 클래스 없이 내용이 채워지며 나타나므로
+        // DOM 서브트리 변화(innerHTML 갱신)를 관찰해 보일 때마다 재계산한다.
+        document.querySelectorAll(".sug-drop").forEach(function (el) {
+            const mo = new MutationObserver(function () {
+                if (isShown(el)) applyGlassTo(el, "#sugDisplacementMap", "#sugGlassRefraction", 26);
+            });
+            mo.observe(el, { childList: true });
+        });
     }
 
     /* 재생이 시작되어 미니 플레이어 바(#bar)가 'bar-hidden'을 벗고 나타날 때
@@ -229,6 +300,7 @@
         wireNavHook();
         watchPillGlass();
         watchBarVisibility();
+        watchExtraGlassVisibility();
         setTimeout(applyAllGlass, 350); // 폰트/이미지 로드 이후 재계산
     }
 
