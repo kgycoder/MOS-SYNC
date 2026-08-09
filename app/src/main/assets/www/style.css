@@ -4372,3 +4372,131 @@ button, a, div, span, input {
         position: relative;
         z-index: 1;
     }
+
+/* ════════════════════════════════════════════════════════
+   LIQUID GLASS — 시스템 UI 확장 (다이얼로그 / 컨텍스트 메뉴 /
+   토스트 / 검색 추천 드롭다운)
+   — 검색 캡슐·하단 내비·미니 바·필 인디케이터에 이미 적용된 것과
+     동일한 SVG 굴절(displacement) 기법을 나머지 팝업형 시스템 UI에
+     그대로 확장. 기존 규칙 위에 소스 순서로 override, 마크업/JS는
+     그대로 사용 (liquid-glass.js 의 applyExtraGlass()가 맵을 채움).
+════════════════════════════════════════════════════════ */
+
+/* ── 바텀시트: 이름변경/삭제 확인 다이얼로그 ── */
+#pl-dialog,
+#pl-confirm {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(22,22,32,.86));
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.18),
+        inset 0 -1px 0 rgba(255,255,255,.05),
+        0 -12px 40px rgba(0,0,0,.40);
+    backdrop-filter: url(#liquidGlassDialogFilter);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+
+    #pl-dialog:before,
+    #pl-confirm:before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        z-index: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,.04), transparent 25%, transparent 75%, rgba(255,255,255,.04));
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+
+    #pl-dialog > *,
+    #pl-confirm > * {
+        position: relative;
+        z-index: 1;
+    }
+
+/* ── 바텀시트: 플레이리스트 곡 추가 모달 ── */
+#pl-add-modal {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(22,22,32,.86));
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.18),
+        inset 0 -1px 0 rgba(255,255,255,.05),
+        0 -12px 40px rgba(0,0,0,.40);
+    backdrop-filter: url(#liquidGlassAddModalFilter);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+
+    #pl-add-modal:before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        z-index: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,.04), transparent 25%, transparent 75%, rgba(255,255,255,.04));
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+
+    #pl-add-modal > * {
+        position: relative;
+        z-index: 1;
+    }
+
+/* ── 플레이리스트 추가 컨텍스트 메뉴 ── */
+#pl-ctx-menu {
+    position: fixed;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(22,22,32,.88));
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.18),
+        inset 0 -1px 0 rgba(255,255,255,.05),
+        0 20px 60px rgba(0,0,0,.55);
+    backdrop-filter: url(#liquidGlassCtxFilter);
+    -webkit-backdrop-filter: blur(30px) saturate(1.6);
+}
+
+    #pl-ctx-menu:before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        z-index: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,.04), transparent 25%, transparent 75%, rgba(255,255,255,.04));
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+
+    #pl-ctx-menu > * {
+        position: relative;
+        z-index: 1;
+    }
+
+/* ── 토스트 캡슐 ── */
+#toast {
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(22,22,32,.82));
+    border: 1px solid rgba(255,255,255,.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.20),
+        inset 0 -1px 0 rgba(255,255,255,.06),
+        0 8px 30px rgba(0,0,0,.45);
+    backdrop-filter: url(#liquidGlassToastFilter);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+}
+
+/* ── 검색 추천 드롭다운 ── */
+.mob-srch-wrap .sug-drop {
+    position: absolute;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(16,16,22,.88));
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.16),
+        0 16px 40px rgba(0,0,0,.40);
+    backdrop-filter: url(#liquidGlassSugFilter);
+    -webkit-backdrop-filter: blur(26px) saturate(1.5);
+}
