@@ -145,10 +145,12 @@
         const dialogOverlay = document.getElementById("pl-dialog-overlay");
         if (dialogOverlay && dialogOverlay.classList.contains("on")) {
             applyGlassTo($("#pl-dialog"), "#dialogDisplacementMap", "#dialogGlassRefraction", 30);
+            applySquircle(document.getElementById("pl-dialog"), 26);
         }
         const confirmOverlay = document.getElementById("pl-confirm-overlay");
         if (confirmOverlay && confirmOverlay.classList.contains("on")) {
             applyGlassTo($("#pl-confirm"), "#dialogDisplacementMap", "#dialogGlassRefraction", 30);
+            applySquircle(document.getElementById("pl-confirm"), 26);
         }
         const addModalOverlay = document.getElementById("pl-add-modal-overlay");
         if (addModalOverlay && addModalOverlay.classList.contains("on")) {
@@ -214,7 +216,95 @@
     let resizeTimer;
     addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(applyAllGlass, 160); });
 
-    /* ---------- 2. 하단 내비 Morphing Sliding Pill ---------- */
+    /* ---------- 3. Continuous Corner (Apple 스타일 스퀴클)
+       superellipse(르네 상속 곡선) 파라메트릭 공식을 이용해 일반
+       border-radius보다 더 "연속적"으로 보이는 모서리를 실시간 생성.
+       clip-path: path(...) 로 요소 자체를 정확히 그 모양으로 잘라내고,
+       CSS border는 곡선을 따라가지 못하므로 대신 동일한 경로를 그리는
+       얇은 SVG stroke를 오버레이해 테두리를 표현한다. ---------- */
+    function squircleD(w, h, r, n) {
+        r = Math.max(0, Math.min(r, w / 2, h / 2));
+        n = n || 4.5;
+        const steps = 12;
+        const pow = 2 / n;
+        function B(t) {
+            const th = t * Math.PI / 2;
+            const cp = Math.pow(Math.cos(th), pow);
+            const sp = Math.pow(Math.sin(th), pow);
+            return [r - r * cp, r - r * sp];
+        }
+        const pts = [[r, 0], [w - r, 0]];
+        for (let i = 0; i <= steps; i++) { // top-right
+            const b = B(1 - i / steps);
+            pts.push([w - b[0], b[1]]);
+        }
+        pts.push([w, h - r]);
+        for (let i = 0; i <= steps; i++) { // bottom-right
+            const b = B(i / steps);
+            pts.push([w - b[0], h - b[1]]);
+        }
+        pts.push([r, h]);
+        for (let i = 0; i <= steps; i++) { // bottom-left
+            const b = B(1 - i / steps);
+            pts.push([b[0], h - b[1]]);
+        }
+        pts.push([0, r]);
+        for (let i = 0; i <= steps; i++) { // top-left
+            const b = B(i / steps);
+            pts.push(b);
+        }
+        let d = "M " + pts[0][0].toFixed(2) + " " + pts[0][1].toFixed(2);
+        for (let i = 1; i < pts.length; i++) d += " L " + pts[i][0].toFixed(2) + " " + pts[i][1].toFixed(2);
+        d += " Z";
+        return d;
+    }
+
+    function ensureSquircleBorder(el) {
+        if (el._sqSvg) return el._sqSvg;
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "sq-border-svg");
+        svg.setAttribute("preserveAspectRatio", "none");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "rgba(255,255,255,.26)");
+        path.setAttribute("stroke-width", "1");
+        svg.appendChild(path);
+        el.appendChild(svg);
+        el._sqSvg = svg;
+        el._sqPath = path;
+        return svg;
+    }
+
+    function applySquircle(el, radius, n) {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        const d = squircleD(r.width, r.height, radius || 26, n);
+        el.style.clipPath = "path('" + d + "')";
+        el.style.webkitClipPath = "path('" + d + "')";
+        ensureSquircleBorder(el);
+        el._sqSvg.setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
+        el._sqPath.setAttribute("d", d);
+    }
+
+    function watchSquircle(id, radius, n) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const recalc = function () { if (isShown(el)) applySquircle(el, radius, n); };
+        if (typeof ResizeObserver !== "undefined") {
+            new ResizeObserver(recalc).observe(el);
+        }
+        el._sqRecalc = recalc;
+    }
+
+    function applyAllSquircles() {
+        ["pl-dialog", "pl-confirm"].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el && el._sqRecalc) el._sqRecalc();
+        });
+    }
+
+    /* ---------- 4. 하단 내비 Morphing Sliding Pill ---------- */
     function morphPillTo(view) {
         const nav = document.getElementById("mob-nav");
         const pill = document.getElementById("mnPill");
@@ -301,6 +391,8 @@
         watchPillGlass();
         watchBarVisibility();
         watchExtraGlassVisibility();
+        watchSquircle("pl-dialog", 26);
+        watchSquircle("pl-confirm", 26);
         setTimeout(applyAllGlass, 350); // 폰트/이미지 로드 이후 재계산
     }
 
